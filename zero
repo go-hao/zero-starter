@@ -289,11 +289,11 @@ def init(module_name):
 
     cmd = 'go mod init {}'.format(module_name)
     ret = cmd_run(cmd)
-    # Fix ambiguous import
-    cmd = 'go get google.golang.org/genproto/googleapis/api'
-    ret = cmd_run(cmd)
-    cmd = 'go get google.golang.org/genproto/googleapis/rpc'
-    ret = cmd_run(cmd)
+    # # Fix ambiguous import
+    # cmd = 'go get google.golang.org/genproto/googleapis/api'
+    # ret = cmd_run(cmd)
+    # cmd = 'go get google.golang.org/genproto/googleapis/rpc'
+    # ret = cmd_run(cmd)
 
 
 def tidy():
@@ -348,9 +348,9 @@ def new_model(service_paths, service_path, sql_dir, model_dir, op):
     if ret != 0:
         return -1
     if op == 'modelc':
-        cmd = 'goctl model mysql ddl -src={}/*.sql -dir={}c -c -style go_zero'.format(sql_path, model_path)
+        cmd = 'goctl model mysql ddl -src={}/*.sql -dir={}c -c'.format(sql_path, model_path)
     else:
-        cmd = 'goctl model mysql ddl -src={}/*.sql -dir={} -style go_zero'.format(sql_path, model_path)
+        cmd = 'goctl model mysql ddl -src={}/*.sql -dir={}'.format(sql_path, model_path)
     ret = cmd_run(cmd)
 
 
@@ -359,11 +359,11 @@ def gen(api_app_paths, rpc_app_paths, app_path):
 
     if cleaned_app_path in api_app_paths:
         service_name = os.path.basename(os.path.dirname(cleaned_app_path))
-        cmd = 'goctl api go -api {}/{}.api -dir {} -style go_zero'.format(cleaned_app_path, service_name, cleaned_app_path)
+        cmd = 'goctl api go -api {}/{}.api -dir {}'.format(cleaned_app_path, service_name, cleaned_app_path)
         ret = cmd_run(cmd)
     elif cleaned_app_path in rpc_app_paths:
         service_name = os.path.basename(os.path.dirname(cleaned_app_path))
-        cmd = 'goctl rpc protoc {0}/{1}.proto --go_out={0} --go-grpc_out={0} --zrpc_out={0} -style go_zero'.format(
+        cmd = 'goctl rpc protoc {0}/{1}.proto --go_out={0} --go-grpc_out={0} --zrpc_out={0}'.format(
             cleaned_app_path,
             service_name,
         )
