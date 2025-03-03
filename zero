@@ -289,11 +289,6 @@ def init(module_name):
 
     cmd = 'go mod init {}'.format(module_name)
     ret = cmd_run(cmd)
-    # # Fix ambiguous import
-    # cmd = 'go get google.golang.org/genproto/googleapis/api'
-    # ret = cmd_run(cmd)
-    # cmd = 'go get google.golang.org/genproto/googleapis/rpc'
-    # ret = cmd_run(cmd)
 
 
 def tidy():
