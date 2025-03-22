@@ -3,6 +3,7 @@ services:
     image: casbin/casdoor:v1.846.0
     restart: always
     environment:
+      TZ: Asia/Shanghai
       driverName: mysql
       dataSourceName: user:letmein@tcp(192.168.50.237:3306)/
       dbName: db

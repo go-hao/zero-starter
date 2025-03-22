@@ -7,6 +7,7 @@ services:
     volumes: # Host:Container
       - ./docker-redis/data:/data
     environment:
+      TZ: Asia/Shanghai
       REDIS_PASSWORD: letmein
     command:
       - /bin/sh
