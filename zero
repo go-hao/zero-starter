@@ -61,6 +61,7 @@ def main():
     model_dir = 'model'
     api_dir = 'api'
     rpc_dir = 'rpc'
+    app_file_dir = 'zerofile'
     template_dir = 'template'
     goctl_cmd = 'goctl --home=./{}'.format(template_dir)
 
@@ -159,9 +160,9 @@ def main():
     elif op == 'clean':
         clean(build_path=build_path)
     elif op == 'api':
-        new_app(service_root_path=service_root_path, app_type=api, service_name=target, goctl_cmd=goctl_cmd)
+        new_app(service_root_path=service_root_path, app_type=api, service_name=target, goctl_cmd=goctl_cmd, app_file_dir=app_file_dir)
     elif op == 'rpc':
-        new_app(service_root_path=service_root_path, app_type=rpc, service_name=target, goctl_cmd=goctl_cmd)
+        new_app(service_root_path=service_root_path, app_type=rpc, service_name=target, goctl_cmd=goctl_cmd, app_file_dir=app_file_dir)
     elif op in ('model', 'modelc'):
         new_model(
             service_paths=service_paths,
@@ -177,6 +178,7 @@ def main():
             rpc_app_paths=rpc_app_paths,
             app_path=target,
             goctl_cmd=goctl_cmd,
+            app_file_dir=app_file_dir,
         )
     elif op == 'build':
         ret = tidy()
@@ -311,9 +313,9 @@ def clean(build_path):
     ret = cmd_run(cmd)
 
 
-def new_app(service_root_path, app_type, service_name, goctl_cmd):
+def new_app(service_root_path, app_type, service_name, goctl_cmd, app_file_dir):
     service_path = os.path.join(service_root_path, service_name)
-    app_path = os.path.join(service_path, app_type['dir'])
+    app_path = os.path.join(service_path, app_type['dir'], app_file_dir)
     app_file = '{}{}'.format(service_name, app_type['file'])
     app_file_path = os.path.join(app_path, app_file)
 
@@ -353,25 +355,21 @@ def new_model(service_paths, service_path, sql_dir, model_dir, op, goctl_cmd):
     ret = cmd_run(cmd)
 
 
-def gen(api_app_paths, rpc_app_paths, app_path, goctl_cmd):
+def gen(api_app_paths, rpc_app_paths, app_path, goctl_cmd, app_file_dir):
     cleaned_app_path = clean_path(app_path)
 
     if cleaned_app_path in api_app_paths:
         service_name = os.path.basename(os.path.dirname(cleaned_app_path))
-        tar_file = '{}/{}.api'.format(cleaned_app_path, service_name)
-        if os.path.isdir(tar_file):
-            tar_file = '{}/{}.api'.format(tar_file, service_name)
-        cmd = '{} api go -api {} -dir {}'.format(goctl_cmd, tar_file, cleaned_app_path)
+        app_file_path = '{}/{}/{}.api'.format(cleaned_app_path, app_file_dir, service_name)
+        cmd = '{} api go -api {} -dir {}'.format(goctl_cmd, app_file_path, cleaned_app_path)
         ret = cmd_run(cmd)
     elif cleaned_app_path in rpc_app_paths:
         service_name = os.path.basename(os.path.dirname(cleaned_app_path))
-        tar_file = '{}/{}.proto'.format(cleaned_app_path, service_name)
-        if os.path.isdir(tar_file):
-            tar_file = '{}/{}.proto'.format(tar_file, service_name)
+        app_file_path = '{}/{}/{}.proto'.format(cleaned_app_path, app_file_dir, service_name)
         cmd = '{0} rpc protoc {1} --go_out={2} --go-grpc_out={2} --zrpc_out={2}'.format(
             goctl_cmd,
-            tar_file,
-            service_name,
+            app_file_path,
+            cleaned_app_path,
         )
         ret = cmd_run(cmd)
     else:
