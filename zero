@@ -61,6 +61,8 @@ def main():
     model_dir = 'model'
     api_dir = 'api'
     rpc_dir = 'rpc'
+    template_dir = 'template'
+    goctl_cmd = 'goctl --home=./{}'.format(template_dir)
 
     ignore_suffix = '.skip'
 
@@ -157,9 +159,9 @@ def main():
     elif op == 'clean':
         clean(build_path=build_path)
     elif op == 'api':
-        new_app(service_root_path=service_root_path, app_type=api, service_name=target)
+        new_app(service_root_path=service_root_path, app_type=api, service_name=target, goctl_cmd=goctl_cmd)
     elif op == 'rpc':
-        new_app(service_root_path=service_root_path, app_type=rpc, service_name=target)
+        new_app(service_root_path=service_root_path, app_type=rpc, service_name=target, goctl_cmd=goctl_cmd)
     elif op in ('model', 'modelc'):
         new_model(
             service_paths=service_paths,
@@ -167,12 +169,14 @@ def main():
             sql_dir=sql_dir,
             model_dir=model_dir,
             op=op,
+            goctl_cmd=goctl_cmd,
         )
     elif op == 'gen':
         gen(
             api_app_paths=api_app_paths,
             rpc_app_paths=rpc_app_paths,
             app_path=target,
+            goctl_cmd=goctl_cmd,
         )
     elif op == 'build':
         ret = tidy()
@@ -307,7 +311,7 @@ def clean(build_path):
     ret = cmd_run(cmd)
 
 
-def new_app(service_root_path, app_type, service_name):
+def new_app(service_root_path, app_type, service_name, goctl_cmd):
     service_path = os.path.join(service_root_path, service_name)
     app_path = os.path.join(service_path, app_type['dir'])
     app_file = '{}{}'.format(service_name, app_type['file'])
@@ -323,11 +327,11 @@ def new_app(service_root_path, app_type, service_name):
     ret = cmd_run(cmd)
     if ret != 0:
         return -1
-    cmd = 'goctl {} -o {}'.format(app_type['tag'], app_file_path)
+    cmd = '{} {} -o {}'.format(goctl_cmd, app_type['tag'], app_file_path)
     ret = cmd_run(cmd)
 
 
-def new_model(service_paths, service_path, sql_dir, model_dir, op):
+def new_model(service_paths, service_path, sql_dir, model_dir, op, goctl_cmd):
     cleaned_service_path = clean_path(service_path)
     sql_path = os.path.join(cleaned_service_path, sql_dir)
     model_path = os.path.join(cleaned_service_path, model_dir)
@@ -343,23 +347,30 @@ def new_model(service_paths, service_path, sql_dir, model_dir, op):
     if ret != 0:
         return -1
     if op == 'modelc':
-        cmd = 'goctl model mysql ddl -src={}/*.sql -dir={}c -c'.format(sql_path, model_path)
+        cmd = '{} model mysql ddl -src={}/*.sql -dir={}c -c'.format(goctl_cmd, sql_path, model_path)
     else:
-        cmd = 'goctl model mysql ddl -src={}/*.sql -dir={}'.format(sql_path, model_path)
+        cmd = '{} model mysql ddl -src={}/*.sql -dir={}'.format(goctl_cmd, sql_path, model_path)
     ret = cmd_run(cmd)
 
 
-def gen(api_app_paths, rpc_app_paths, app_path):
+def gen(api_app_paths, rpc_app_paths, app_path, goctl_cmd):
     cleaned_app_path = clean_path(app_path)
 
     if cleaned_app_path in api_app_paths:
         service_name = os.path.basename(os.path.dirname(cleaned_app_path))
-        cmd = 'goctl api go -api {}/{}.api -dir {}'.format(cleaned_app_path, service_name, cleaned_app_path)
+        tar_file = '{}/{}.api'.format(cleaned_app_path, service_name)
+        if os.path.isdir(tar_file):
+            tar_file = '{}/{}.api'.format(tar_file, service_name)
+        cmd = '{} api go -api {} -dir {}'.format(goctl_cmd, tar_file, cleaned_app_path)
         ret = cmd_run(cmd)
     elif cleaned_app_path in rpc_app_paths:
         service_name = os.path.basename(os.path.dirname(cleaned_app_path))
-        cmd = 'goctl rpc protoc {0}/{1}.proto --go_out={0} --go-grpc_out={0} --zrpc_out={0}'.format(
-            cleaned_app_path,
+        tar_file = '{}/{}.proto'.format(cleaned_app_path, service_name)
+        if os.path.isdir(tar_file):
+            tar_file = '{}/{}.proto'.format(tar_file, service_name)
+        cmd = '{0} rpc protoc {1} --go_out={2} --go-grpc_out={2} --zrpc_out={2}'.format(
+            goctl_cmd,
+            tar_file,
             service_name,
         )
         ret = cmd_run(cmd)
