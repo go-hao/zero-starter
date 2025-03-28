@@ -1,6 +1,6 @@
 services:
   redis:
-    image: redis:7.2.5
+    image: redis:7.4.2-alpine
     restart: always
     ports: # Host:Container
       - 6379:6379
