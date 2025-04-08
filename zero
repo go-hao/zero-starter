@@ -61,7 +61,7 @@ def main():
     model_dir = 'model'
     api_dir = 'api'
     rpc_dir = 'rpc'
-    app_file_dir = 'zerofile'
+    app_file_dir = 'desc'
     template_dir = 'template'
     goctl_cmd = 'goctl --home=./{}'.format(template_dir)
 

@@ -18,7 +18,10 @@ func main() {
 	conf.MustLoad(*configFile, &c)
     
     // set custom validator
-	httpx.SetValidator(xvalidator.New())
+    validator := xvalidator.New()
+	httpx.SetValidator(validator)
+	// todo: set custom validations by calling
+	// validator.RegisterValidations()
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
