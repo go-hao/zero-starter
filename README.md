@@ -1,6 +1,6 @@
 # README.md
 
-```shell
+```
 Usage: ./zero <option>
 Options:
   set                   set go environment variables - GO111MODULE(on) and GOPROXY
