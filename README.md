@@ -1,6 +1,6 @@
 # README.md
 
-```
+```shell
 Usage: ./zero <option>
 Options:
   set                   set go environment variables - GO111MODULE(on) and GOPROXY
@@ -16,6 +16,8 @@ Options:
   gen <PATH>            generate or update app code
                           - PATH      - service/NAME/OPT
                           - OPT       - api|rpc
+  combo <PATH>          run gen api, gen rpc, model and modelc together
+                          - PATH      - service/NAME
   build [PATH]          build app
                           - PATH      - service/NAME/OPT
                                         omit to build all apps
