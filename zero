@@ -108,6 +108,9 @@ def main():
                                     '  - PATH      - {}/NAME/OPT'.format(service_root_path),
                                     '  - OPT       - {}|{}'.format(api['tag'], rpc['tag']),
                                     ],
+        'combo <PATH>':            ['run gen api, gen rpc, model and modelc together',
+                                    '  - PATH      - {}/NAME'.format(service_root_path),
+                                    ],
         'build [PATH]':            ['build app', 
                                     '  - PATH      - {}/NAME/OPT'.format(service_root_path),
                                     '                omit to build all apps',
@@ -136,6 +139,7 @@ def main():
         'model',
         'modelc',
         'gen',
+        'combo',
         'build',
         'run',
         'up',
@@ -177,6 +181,17 @@ def main():
             api_app_paths=api_app_paths,
             rpc_app_paths=rpc_app_paths,
             app_path=target,
+            goctl_cmd=goctl_cmd,
+            app_file_dir=app_file_dir,
+        )
+    elif op == 'combo':
+        combo(
+            service_paths=service_paths,
+            api_app_paths=api_app_paths,
+            rpc_app_paths=rpc_app_paths,
+            service_path=target,
+            sql_dir=sql_dir,
+            model_dir=model_dir,
             goctl_cmd=goctl_cmd,
             app_file_dir=app_file_dir,
         )
@@ -375,6 +390,37 @@ def gen(api_app_paths, rpc_app_paths, app_path, goctl_cmd, app_file_dir):
     else:
         return error('undefined app: {}'.format(cleaned_app_path))
 
+def combo(service_paths, api_app_paths, rpc_app_paths, service_path, sql_dir, model_dir, goctl_cmd, app_file_dir):
+    new_model(
+        service_paths=service_paths,
+        service_path=service_path,
+        sql_dir=sql_dir,
+        model_dir=model_dir,
+        op='model',
+        goctl_cmd=goctl_cmd,
+    )
+    new_model(
+        service_paths=service_paths,
+        service_path=service_path,
+        sql_dir=sql_dir,
+        model_dir=model_dir,
+        op='modelc',
+        goctl_cmd=goctl_cmd,
+    )
+    gen(
+        api_app_paths=api_app_paths,
+        rpc_app_paths=rpc_app_paths,
+        app_path='{}/{}'.format(service_path, 'api'),
+        goctl_cmd=goctl_cmd,
+        app_file_dir=app_file_dir,
+    )
+    gen(
+        api_app_paths=api_app_paths,
+        rpc_app_paths=rpc_app_paths,
+        app_path='{}/{}'.format(service_path, 'rpc'),
+        goctl_cmd=goctl_cmd,
+        app_file_dir=app_file_dir,
+    )
 
 def build(api_app_paths, rpc_app_paths, build_path, app_path):
     cleaned_app_path = clean_path(app_path)
