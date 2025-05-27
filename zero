@@ -374,6 +374,10 @@ def gen(api_app_paths, rpc_app_paths, app_path, goctl_cmd, app_file_dir):
     cleaned_app_path = clean_path(app_path)
 
     if cleaned_app_path in api_app_paths:
+        # format api files
+        goctl = '{}'.format(goctl_cmd).split(' ')[0]
+        cmd = '{} api format --dir {}'.format(goctl, cleaned_app_path)
+        ret = cmd_run(cmd)
         service_name = os.path.basename(os.path.dirname(cleaned_app_path))
         app_file_path = '{}/{}/{}.api'.format(cleaned_app_path, app_file_dir, service_name)
         cmd = '{} api go -api {} -dir {}'.format(goctl_cmd, app_file_path, cleaned_app_path)

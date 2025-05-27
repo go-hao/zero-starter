@@ -3,7 +3,6 @@ services:
     image: emqx/emqx:5.8.4
     restart: always
     environment:
-      TZ: Asia/Shanghai
       EMQX_DASHBOARD__DEFAULT_USERNAME: admin
       EMQX_DASHBOARD__DEFAULT_PASSWORD: letmein
     ports: # Host:Container

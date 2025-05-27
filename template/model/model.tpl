@@ -21,7 +21,13 @@ type (
 	{{.upperStartCamelObject}}Model interface {
 		{{.lowerStartCamelObject}}Model
 		{{if not .withCache}}withSession(session sqlx.Session) {{.upperStartCamelObject}}Model{{end}}
+		
+		{{if not .withCache}}
+        findAll(ctx context.Context, condition string, args ...any) ([]*{{.upperStartCamelObject}}, error)
+		getCount(ctx context.Context, condition string, args ...any) (int64, error)
+        {{end}}
 	}
+
 
 	custom{{.upperStartCamelObject}}Model struct {
 		*default{{.upperStartCamelObject}}Model
@@ -37,14 +43,14 @@ func New{{.upperStartCamelObject}}Model(conn sqlx.SqlConn{{if .withCache}}, c ca
 
 {{if not .withCache}}
 func (m *custom{{.upperStartCamelObject}}Model) withSession(session sqlx.Session) {{.upperStartCamelObject}}Model {
-    return New{{.upperStartCamelObject}}Model(sqlx.NewSqlConnFromSession(session))
+	return New{{.upperStartCamelObject}}Model(sqlx.NewSqlConnFromSession(session))
 }
 
-func (m *custom{{.upperStartCamelObject}}Model) findAllByCondition (ctx context.Context, condition string, args ...any) ([]*{{.upperStartCamelObject}}, error) {
+func (m *custom{{.upperStartCamelObject}}Model) findAll(ctx context.Context, condition string, args ...any) ([]*{{.upperStartCamelObject}}, error) {
 	// create query
-	query := fmt.Sprintf("select %s from %s", {{.lowerStartCamelObject}}Rows, m.table)
+	query := fmt.Sprintf("select %s from %s where 1 = 1", {{.lowerStartCamelObject}}Rows, m.table)
 	if len(condition) > 0 {
-		query += fmt.Sprintf(" %s", condition)
+		query += condition
 	}
 
 	// prepare
@@ -62,6 +68,30 @@ func (m *custom{{.upperStartCamelObject}}Model) findAllByCondition (ctx context.
 	}
 
 	return resp, nil
+}
+
+func (m *custom{{.upperStartCamelObject}}Model) getCount(ctx context.Context, condition string, args ...any) (int64, error) {
+	// create query
+	query := fmt.Sprintf("select count(*) from %s where 1 = 1", m.table)
+	if len(condition) > 0 {
+		query += condition
+	}
+
+	// prepare
+	stmt, err := m.conn.PrepareCtx(ctx, query)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+
+	// exec
+	var count int64
+	err = stmt.QueryRowCtx(ctx, &count, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 {{end}}
 
