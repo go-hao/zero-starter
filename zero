@@ -64,6 +64,7 @@ def main():
     app_file_dir = 'desc'
     template_dir = 'template'
     goctl_cmd = 'goctl --home=./{}'.format(template_dir)
+    style = 'goZero'
 
     ignore_suffix = '.skip'
 
@@ -175,6 +176,7 @@ def main():
             model_dir=model_dir,
             op=op,
             goctl_cmd=goctl_cmd,
+            style=style,
         )
     elif op == 'gen':
         gen(
@@ -183,6 +185,7 @@ def main():
             app_path=target,
             goctl_cmd=goctl_cmd,
             app_file_dir=app_file_dir,
+            style=style,
         )
     elif op == 'combo':
         combo(
@@ -194,6 +197,7 @@ def main():
             model_dir=model_dir,
             goctl_cmd=goctl_cmd,
             app_file_dir=app_file_dir,
+            style=style,
         )
     elif op == 'build':
         ret = tidy()
@@ -348,7 +352,7 @@ def new_app(service_root_path, app_type, service_name, goctl_cmd, app_file_dir):
     ret = cmd_run(cmd)
 
 
-def new_model(service_paths, service_path, sql_dir, model_dir, op, goctl_cmd):
+def new_model(service_paths, service_path, sql_dir, model_dir, op, goctl_cmd, style):
     cleaned_service_path = clean_path(service_path)
     sql_path = os.path.join(cleaned_service_path, sql_dir)
     model_path = os.path.join(cleaned_service_path, model_dir)
@@ -364,13 +368,13 @@ def new_model(service_paths, service_path, sql_dir, model_dir, op, goctl_cmd):
     if ret != 0:
         return -1
     if op == 'modelc':
-        cmd = '{} model mysql ddl -src={}/*.sql -dir={}c -c'.format(goctl_cmd, sql_path, model_path)
+        cmd = '{} model mysql ddl -src={}/*.sql -dir={}c -style={} -c'.format(goctl_cmd, sql_path, model_path, style)
     else:
-        cmd = '{} model mysql ddl -src={}/*.sql -dir={}'.format(goctl_cmd, sql_path, model_path)
+        cmd = '{} model mysql ddl -src={}/*.sql -dir={} -style={}'.format(goctl_cmd, sql_path, model_path, style)
     ret = cmd_run(cmd)
 
 
-def gen(api_app_paths, rpc_app_paths, app_path, goctl_cmd, app_file_dir):
+def gen(api_app_paths, rpc_app_paths, app_path, goctl_cmd, app_file_dir, style):
     cleaned_app_path = clean_path(app_path)
 
     if cleaned_app_path in api_app_paths:
@@ -380,21 +384,22 @@ def gen(api_app_paths, rpc_app_paths, app_path, goctl_cmd, app_file_dir):
         ret = cmd_run(cmd)
         service_name = os.path.basename(os.path.dirname(cleaned_app_path))
         app_file_path = '{}/{}/{}.api'.format(cleaned_app_path, app_file_dir, service_name)
-        cmd = '{} api go -api {} -dir {}'.format(goctl_cmd, app_file_path, cleaned_app_path)
+        cmd = '{} api go -api {} -dir {} -style {}'.format(goctl_cmd, app_file_path, cleaned_app_path, style)
         ret = cmd_run(cmd)
     elif cleaned_app_path in rpc_app_paths:
         service_name = os.path.basename(os.path.dirname(cleaned_app_path))
         app_file_path = '{}/{}/{}.proto'.format(cleaned_app_path, app_file_dir, service_name)
-        cmd = '{0} rpc protoc {1} --go_out={2} --go-grpc_out={2} --zrpc_out={2}'.format(
+        cmd = '{0} rpc protoc {1} --go_out={2} --go-grpc_out={2} --zrpc_out={2} -style={}'.format(
             goctl_cmd,
             app_file_path,
             cleaned_app_path,
+            style,
         )
         ret = cmd_run(cmd)
     else:
         return error('undefined app: {}'.format(cleaned_app_path))
 
-def combo(service_paths, api_app_paths, rpc_app_paths, service_path, sql_dir, model_dir, goctl_cmd, app_file_dir):
+def combo(service_paths, api_app_paths, rpc_app_paths, service_path, sql_dir, model_dir, goctl_cmd, app_file_dir, style):
     new_model(
         service_paths=service_paths,
         service_path=service_path,
@@ -402,6 +407,7 @@ def combo(service_paths, api_app_paths, rpc_app_paths, service_path, sql_dir, mo
         model_dir=model_dir,
         op='model',
         goctl_cmd=goctl_cmd,
+        style=style,
     )
     new_model(
         service_paths=service_paths,
@@ -410,6 +416,7 @@ def combo(service_paths, api_app_paths, rpc_app_paths, service_path, sql_dir, mo
         model_dir=model_dir,
         op='modelc',
         goctl_cmd=goctl_cmd,
+        style=style,
     )
     gen(
         api_app_paths=api_app_paths,
@@ -417,6 +424,7 @@ def combo(service_paths, api_app_paths, rpc_app_paths, service_path, sql_dir, mo
         app_path='{}/{}'.format(service_path, 'api'),
         goctl_cmd=goctl_cmd,
         app_file_dir=app_file_dir,
+        style=style,
     )
     gen(
         api_app_paths=api_app_paths,
@@ -424,6 +432,7 @@ def combo(service_paths, api_app_paths, rpc_app_paths, service_path, sql_dir, mo
         app_path='{}/{}'.format(service_path, 'rpc'),
         goctl_cmd=goctl_cmd,
         app_file_dir=app_file_dir,
+        style=style,
     )
 
 def build(api_app_paths, rpc_app_paths, build_path, app_path):
