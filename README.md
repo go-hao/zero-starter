@@ -25,11 +25,4 @@ Options:
   run <PATH>            run app
                           - PATH      - service/NAME/OPT
                           - OPT       - api|rpc
-  <DOCKER OP> [PATH]    shortcut of docker compose to manage docker service in docker
-                          - PATH      - docker/NAME
-                                        omit to manage all services
-                          - DOCKER OP - up   start the service
-                                        down stop the service
-                                        ps   show status of the service
-                                        logs show logs of the service
 ```
