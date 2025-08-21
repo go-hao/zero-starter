@@ -25,7 +25,6 @@ go.work.sum
 .DS_Store
 
 # IDE settings
-.vscode/
 
 # Custom folders
 bin/
@@ -33,3 +32,4 @@ build/
 data/
 log/
 docker-*/
+ignore/

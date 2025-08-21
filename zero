@@ -55,7 +55,6 @@ def main():
 
     # Define project folder names
     build_dir = 'build'
-    docker_root_dir = 'docker'
     service_root_dir = 'service'
     sql_dir = 'sql'
     model_dir = 'model'
@@ -65,9 +64,6 @@ def main():
     template_dir = 'template'
     goctl_cmd = 'goctl --home=./{}'.format(template_dir)
     style = 'goZero'
-
-    ignore_suffix = '.skip'
-
 
     # Define app types
     api = {
@@ -84,9 +80,7 @@ def main():
 
     # Collect paths
     build_path = build_dir
-    docker_root_path = docker_root_dir
     service_root_path = service_root_dir
-    docker_paths = get_sub_paths(root_path=docker_root_path)
     service_paths = get_sub_paths(root_path=service_root_path)
     api_app_paths = get_app_paths(service_paths=service_paths, app_type=api)
     rpc_app_paths = get_app_paths(service_paths=service_paths, app_type=rpc)
@@ -121,14 +115,6 @@ def main():
                                     '  - PATH      - {}/NAME/OPT'.format(service_root_path),
                                     '  - OPT       - {}|{}'.format(api['tag'], rpc['tag']),
                                     ],
-        '<DOCKER OP> [PATH]':      ['shortcut of docker compose to manage docker service in {}'.format(docker_root_path), 
-                                    '  - PATH      - {}/NAME'.format(docker_root_path),
-                                    '                omit to manage all services',
-                                    '  - DOCKER OP - up   start the service',
-                                    '                down stop the service',
-                                    '                ps   show status of the service',
-                                    '                logs show logs of the service',
-                                    ],
     }
     ops = {
         'set',
@@ -143,10 +129,6 @@ def main():
         'combo',
         'build',
         'run',
-        'up',
-        'down',
-        'ps',
-        'logs',
     }
 
     op = '' if len(sys.argv) <= 1 else sys.argv[1]
@@ -227,8 +209,6 @@ def main():
             build_path=build_path,
             app_path=target,
         )
-    elif op in ('up', 'down', 'ps', 'logs'):
-        docker(docker_paths=docker_paths, op=op, docker_path=target, ignore_suffix=ignore_suffix)
     else:
         help(ops_help=ops_help)
 
@@ -279,6 +259,7 @@ def clean_path(path):
 def error(msg):
     print('[e] [{}] {}'.format(datetime.datetime.now().strftime('%H:%M:%S'), msg))
     return -1
+
 
 def info(msg, cwd=''):
     print('[i] [{}] {}'.format(datetime.datetime.now().strftime('%H:%M:%S'), msg))
@@ -399,6 +380,7 @@ def gen(api_app_paths, rpc_app_paths, app_path, goctl_cmd, app_file_dir, style):
     else:
         return error('undefined app: {}'.format(cleaned_app_path))
 
+
 def combo(service_paths, api_app_paths, rpc_app_paths, service_path, sql_dir, model_dir, goctl_cmd, app_file_dir, style):
     new_model(
         service_paths=service_paths,
@@ -434,6 +416,7 @@ def combo(service_paths, api_app_paths, rpc_app_paths, service_path, sql_dir, mo
         app_file_dir=app_file_dir,
         style=style,
     )
+
 
 def build(api_app_paths, rpc_app_paths, build_path, app_path):
     cleaned_app_path = clean_path(app_path)
@@ -474,29 +457,6 @@ def run(api_app_paths, rpc_app_paths, build_path, app_path):
     else:
         return error('undefined app: {}'.format(cleaned_app_path))
 
-def docker(docker_paths, op, docker_path, ignore_suffix):
-    cleaned_docker_path = clean_path(docker_path)
-    docker_services = []
-    if cleaned_docker_path in docker_paths:
-        docker_services.append(cleaned_docker_path)
-    elif cleaned_docker_path == '':
-        docker_services = docker_paths.copy()
-    else:
-        return error('undefined docker service: {}'.format(cleaned_docker_path))
-    
-    cmd = ''
-    if op == 'up':
-        cmd = 'docker compose up -d'
-    elif op == 'down':
-        cmd = 'docker compose down'
-    elif op == 'ps':
-        cmd = 'docker compose ps -a'
-    elif op == 'logs':
-        cmd = 'docker compose logs'
-    
-    for s in docker_services:
-        if not s.endswith(ignore_suffix):
-            ret = cmd_run(cmd, cwd=s)
 
 if __name__ == '__main__':
     main()
